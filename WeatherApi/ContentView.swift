@@ -6,16 +6,37 @@
 //
 
 import SwiftUI
+import Combine
 
 struct ContentView: View {
+
+    @State var searchText = ""
+    @StateObject var viewModel = ContentViewModel()
+    //let searchTextPublisher = PassthroughSubject<String, Never>()
+       
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationView {
+            if let weather = viewModel.weather {
+                VStack {
+                    Text(weather.location?.name ?? "no valid city found")
+                    if let current = weather.current {
+                        Text(String(format: "%.0f", current.tempC))
+                    }
+                }
+            } else {
+                Text("type a city name")
+            }
         }
-        .padding()
+        .searchable(text: $viewModel.searchText)
+        /*.onChange(of: searchText) { searchText in
+            searchTextPublisher.send(searchText)
+        }
+        .onReceive(
+            searchTextPublisher
+                .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+        ) { _ in
+            //$viewModel.getWeather(debouncedSearchText)
+        }*/
     }
 }
 
