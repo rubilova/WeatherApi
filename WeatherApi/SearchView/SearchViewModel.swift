@@ -8,10 +8,12 @@
 import Foundation
 import Combine
 
-class ContentViewModel: ObservableObject {
+class SearchViewModel: ObservableObject {
     
     @Published var weather: Weather?
+    @Published var cities: [City] = []
     @Published var searchText: String = ""
+    @Published var error = false
     
     private let dataService = WeatherService()
     private var cancellables = Set<AnyCancellable>()
