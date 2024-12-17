@@ -10,15 +10,17 @@ import Combine
 
 struct SearchView: View {
 
-    @StateObject var viewModel = SearchViewModel()
-    
+    @StateObject var viewModel = SearchViewModel(WeatherService())
+
        
     var body: some View {
         NavigationStack {
             content()
                 .searchable(text: $viewModel.searchText, prompt: "Search Location")
+                .navigationDestination(for: City.self) {selected in
+                    SelectedCityView(city: selected)
+                }
         }
-        .searchable(text: $viewModel.searchText)
         
     }
     
@@ -28,8 +30,7 @@ struct SearchView: View {
             if viewModel.error {
                 error()
             } else if viewModel.cities.isEmpty {
-                error()
-                //emptyPlaceholder()
+                emptyPlaceholder()
             } else {
                 citiesList()
             }
