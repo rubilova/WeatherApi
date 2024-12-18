@@ -59,7 +59,6 @@ class WeatherService: WeatherServiceProtocol {
     
     private func fetch(citiesIDs: [Int]) -> AnyPublisher<[City], Error> {
         guard !citiesIDs.isEmpty else {
-            print("Received an empty list of cities IDs")
             return Just([City]())
                 .setFailureType(to: Error.self)
                 .eraseToAnyPublisher()
