@@ -34,8 +34,7 @@ class WeatherService: WeatherServiceProtocol {
         return URLSession.shared.dataTaskPublisher(for: url)
             .map(\.data)
             .decode(type: [CitySearchResponse].self, decoder: JSONDecoder())
-            .map { self.fetch(citiesIDs: //$0.map{"\($0.id)"}) }
-                                $0.map(\.id)) }
+            .map { self.fetch(citiesIDs: $0.map(\.id)) }
             .switchToLatest()
             .catch { error in
                 return Fail(error: error).eraseToAnyPublisher()

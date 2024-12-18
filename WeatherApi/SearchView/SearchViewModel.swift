@@ -20,6 +20,7 @@ class SearchViewModel: ObservableObject {
     
     private let dataService = WeatherService()
     private var cancellables = Set<AnyCancellable>()
+    private var cancellable: AnyCancellable?
     
     @AppStorage("selectedCity") var selectedCityId = "" 
     
@@ -48,26 +49,26 @@ class SearchViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
+    func fetch(searchText: String) {
+        cancellable = dataService.searchCities(searchText: searchText)
+            .receive(on: DispatchQueue.main)
+            .sink { completion in
+                switch completion {
+                case .finished:
+                    self.error = false
+                case .failure:
+                    self.error = true
+                }
+            } receiveValue: { cities in
+                self.cities = cities
+            }
+    }
+    
     func addSubscribers() {
         
         $searchText
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
-            .map { [weak self] searchText -> AnyPublisher<[City], Error> in
-                guard let self = self else { return Fail(error: RemoteError.connectivity).eraseToAnyPublisher() }
-                return self.weatherService.searchCities(searchText: searchText)
-            }
-            .switchToLatest()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] completion in
-                switch completion {
-                case .finished:
-                    self?.error = false
-                case .failure:
-                    self?.error = true
-                }
-            } receiveValue: { [weak self] cities in
-                self?.cities = cities
-            }
+            .sink { self.fetch(searchText: $0) }
             .store(in: &cancellables)
     }
     
