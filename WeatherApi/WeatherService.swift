@@ -16,7 +16,7 @@ protocol WeatherServiceProtocol {
 class WeatherService: WeatherServiceProtocol {
     
     var weatherSubscription: AnyCancellable?
-    private let apiKey = "b38026405298410697632906241612"
+    private let apiKey = "apiKey"
     
     private enum Method: String {
         case search, current
@@ -29,6 +29,7 @@ class WeatherService: WeatherServiceProtocol {
                 .eraseToAnyPublisher()
         }
         guard let url = makeUrl(method: .search, query: searchText) else {
+            print("Failed to create URL for \(searchText) request")
             return Fail(error: RemoteError.connectivity).eraseToAnyPublisher()
         }
         return URLSession.shared.dataTaskPublisher(for: url)
@@ -37,7 +38,7 @@ class WeatherService: WeatherServiceProtocol {
             .map { self.fetch(citiesIDs: $0.map(\.id)) }
             .switchToLatest()
             .catch { error in
-                return Fail(error: error).eraseToAnyPublisher()
+                return Fail(error: RemoteError.invalidData).eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
     }
@@ -46,6 +47,10 @@ class WeatherService: WeatherServiceProtocol {
     func weatherFor(cityId: String) -> AnyPublisher<City?, Error>
     {
         let cityIdInt = Int(cityId) ?? 0
+        guard cityIdInt != 0 else {
+            print("Received an invalid city ID")
+            return  Fail(error: RemoteError.invalidData).eraseToAnyPublisher()
+        }
         return fetch(citiesIDs: [cityIdInt])
             .map { cities in
                 return cities.first
@@ -54,16 +59,19 @@ class WeatherService: WeatherServiceProtocol {
     
     private func fetch(citiesIDs: [Int]) -> AnyPublisher<[City], Error> {
         guard !citiesIDs.isEmpty else {
+            print("Received an empty list of cities IDs")
             return Just([City]())
                 .setFailureType(to: Error.self)
                 .eraseToAnyPublisher()
         }
         guard let url = makeUrl(method: .current, query: "bulk") else {
+            print("Failed to create URL for cities request")
             return Fail(error: RemoteError.connectivity).eraseToAnyPublisher()
         }
         let ids = citiesIDs.map { "id:\($0)"}
         let payload = ["locations": ids.map { ["q": $0] }]
         guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+            print("Failed to deserialize JSON data")
             return  Fail(error: RemoteError.invalidData).eraseToAnyPublisher()
         }
         var request = URLRequest(url: url)
@@ -77,7 +85,7 @@ class WeatherService: WeatherServiceProtocol {
                 response.bulk.map { $0.query.toCity() }
             }
             .catch { error in
-                return Fail(error: error).eraseToAnyPublisher()
+                return Fail(error: RemoteError.invalidData).eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
     }

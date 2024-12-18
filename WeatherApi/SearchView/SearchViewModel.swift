@@ -40,7 +40,8 @@ class SearchViewModel: ObservableObject {
                 switch completion {
                 case .finished:
                     self?.error = false
-                case .failure:
+                case .failure(let receivedError):
+                    print("Received an error: \(receivedError)")
                     self?.error = true
                 }
             } receiveValue: { [weak self] city in
@@ -56,7 +57,8 @@ class SearchViewModel: ObservableObject {
                 switch completion {
                 case .finished:
                     self.error = false
-                case .failure:
+                case .failure(let receivedError):
+                    print("Received an error: \(receivedError)")
                     self.error = true
                 }
             } receiveValue: { cities in
