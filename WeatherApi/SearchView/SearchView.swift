@@ -9,19 +9,24 @@ import SwiftUI
 import Combine
 
 struct SearchView: View {
-
-    @StateObject var viewModel = SearchViewModel(WeatherService())
-
+    @EnvironmentObject var viewModel: SearchViewModel
        
     var body: some View {
         NavigationStack {
-            content()
+            SearchableView()
                 .searchable(text: $viewModel.searchText, prompt: "Search Location")
-                .navigationDestination(for: City.self) {selected in
-                    SelectedCityView(city: selected)
-                }
         }
-        
+    }
+}
+
+struct SearchableView: View {
+    @Environment(\.dismissSearch) var dismissSearch
+    @EnvironmentObject var viewModel: SearchViewModel
+
+    var body: some View {
+        VStack {
+            content()
+        }
     }
     
     @ViewBuilder
@@ -35,10 +40,11 @@ struct SearchView: View {
                 } else if viewModel.cities.isEmpty {
                     emptyPlaceholder()
                 } else {
-                    citiesList()
+                    VStack {
+                        citiesList()
+                    }
                 }
             }
-            
         }
             .animation(.default, value: viewModel.cities)
     }
@@ -60,12 +66,12 @@ struct SearchView: View {
                     .onTapGesture {
                         viewModel.searchText = ""
                         viewModel.setSelectedCity(cityId: city.id.deletingPrefix("id:"))
+                        dismissSearch()
                     }
             }
                 .padding()
         }
     }
-    
 
     func error() -> some View {
         VStack {
@@ -80,5 +86,5 @@ struct SearchView: View {
 }
 
 #Preview {
-    SearchView()
+    SearchView().environmentObject(SearchViewModel(WeatherService()))
 }

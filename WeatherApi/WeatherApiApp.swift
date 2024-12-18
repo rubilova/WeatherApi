@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct WeatherApiApp: App {
+    @StateObject var searchViewModel = SearchViewModel(WeatherService())
+    
     var body: some Scene {
         WindowGroup {
             SearchView()
+                .environmentObject(searchViewModel)
         }
     }
 }
