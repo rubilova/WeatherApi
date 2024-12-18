@@ -12,7 +12,7 @@ struct CityCellView: View {
     let city: City
     
     var body: some View {
-        NavigationLink(value: city) {
+        //NavigationLink(value: city) {
             HStack {
                 VStack(alignment: .leading) {
                     Text(city.name)
@@ -35,7 +35,7 @@ struct CityCellView: View {
             .background(
                 RoundedRectangle(cornerRadius: 15).fill(Color.gray.opacity(0.2))
             )
-        }
+        //}
     }
     
     func image() -> some View {

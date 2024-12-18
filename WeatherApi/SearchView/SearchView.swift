@@ -27,13 +27,18 @@ struct SearchView: View {
     @ViewBuilder
     func content() -> some View {
         ZStack {
-            if viewModel.error {
-                error()
-            } else if viewModel.cities.isEmpty {
-                emptyPlaceholder()
+            if viewModel.selectedCity != nil && viewModel.searchText.isEmpty {
+                SelectedCityView(city: viewModel.selectedCity!)
             } else {
-                citiesList()
+                if viewModel.error {
+                    error()
+                } else if viewModel.cities.isEmpty {
+                    emptyPlaceholder()
+                } else {
+                    citiesList()
+                }
             }
+            
         }
             .animation(.default, value: viewModel.cities)
     }
@@ -52,6 +57,10 @@ struct SearchView: View {
             ForEach(viewModel.cities) { city in
                 CityCellView(city: city)
                     .contentShape(Rectangle())
+                    .onTapGesture {
+                        viewModel.searchText = ""
+                        viewModel.setSelectedCity(cityId: city.id.deletingPrefix("id:"))
+                    }
             }
                 .padding()
         }
